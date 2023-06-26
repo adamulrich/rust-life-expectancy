@@ -3,6 +3,7 @@ use std::{collections::HashMap};
 use std::error::Error;
 use serde::Deserialize;
 use std::fmt::{self, Display};
+use std::clone::Clone;
 
 
 // CONSTANTS
@@ -18,14 +19,14 @@ static DICT_CODE: i32 = 0;
 static QUERY_TYPE_GENERAL: i32 = 0;
 static QUERY_TYPE_DELTA: i32 = 1;
 
-enum ListValue {
-    Int(i32),
-    Float(f64),
-    Text(String),
+#[derive(Debug, Deserialize, Clone)]
+struct HashStruct {
+    code: String,
+    life_expectancy: f64
 }
 
-#[derive(Debug, Deserialize)]
-struct DataPoint {
+#[derive(Debug, Deserialize, Clone)]
+struct ListStruct {
     region: String,
     code: String,
     year: i32,
@@ -36,62 +37,49 @@ fn main() {
 
     let QUERY_TYPE: [String; 2] = ["GENERAL".to_string(), "DELTA".to_string()];
     
-
     // read data from file into dictionary
-
     let result = read_from_file("res/life-expectancy.csv".to_string()).unwrap();
-    
+
+    // get data from result
     let life_dict = result.0;
     let life_list = result.1 ;
+
+    println!("Done");
 }
 
+fn read_from_file(path: String) -> Result<(HashMap<String, HashStruct>, Vec<ListStruct>), Box<dyn Error >> {
 
-fn read_from_file(path: String) -> Result<(HashMap<String, Vec<ListValue>>, Vec<Vec<ListValue>>), Box<dyn Error >> {
-
-    //(HashMap<String, Vec<ListValue>>, Vec<Vec<ListValue>>)
-
-        // Creates a new csv `Reader` from a file
+    // Creates a new csv `Reader` from a file
     let reader = csv::Reader::from_path(path);
-    let mut life_dict: HashMap<String, Vec<ListValue>> = HashMap::new();    
-    let mut life_list: Vec<Vec<ListValue>> = Vec::new();
+    let mut life_dict: HashMap<String, HashStruct> = HashMap::new();    
+    let mut life_list: Vec<ListStruct> = Vec::new();
 
     
     // `.records` return an iterator of the internal
     // record structure
     for row in reader?.deserialize() {
-        let record: DataPoint = row?;
-        println!("{}", record.code);
+        let mut record: ListStruct = row?;
+        // println!("{}", record.code);
         
-        let region = record.region.to_string().to_lowercase();
-        let year = record.year;
-        let code = record.code.to_string().to_lowercase();
-        let life_expectancy = record.life_expectancy;
-        let key = format!("{}{}", region, year);
-
-        println!("{}", region);
-
-        let value_hash = vec![
-            ListValue::Text(record.code),
-            ListValue::Float(record.life_expectancy)
-        ];
-        
-        life_dict.insert(key.clone(),value_hash);
-
-        
-        let value_list = vec![
-            ListValue::Text(region),
-            ListValue::Text(code),
-            ListValue::Int(year),
-            ListValue::Float(life_expectancy)
-        ];
-
-        life_list.push(value_list);
-
+        record.code = record.code.to_string().to_lowercase();
+        record.region = record.region.to_string().to_lowercase();
     
+        // deconstruct
+        let year = record.year;
+        
+        let key = format!("{}{}", record.region, year);
+
+        let value_hash: HashStruct = HashStruct 
+            { code: (record.clone().code), 
+            life_expectancy: (record.clone().life_expectancy) };
+        
+        // add to dictionary
+        life_dict.insert(key.clone(),value_hash);
+      
+        // add to list
+        life_list.push(record);
     }
     //return (life_dict, life_list);
     Ok((life_dict, life_list))
-
-    
     
 }
