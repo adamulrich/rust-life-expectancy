@@ -6,7 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+clearscreen = "2.0.1"
 copy_to_output = "2.1.0"
 csv = "1.2.2"
 dict = "0.1.5"
+itertools = "0.11.0"
+list_comprehension_macro = "0.1.1"
 serde = { version = "1.0.164", features = ["serde_derive"] }
