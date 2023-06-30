@@ -1,4 +1,7 @@
-
+// main.rs
+// life expectancy dataset query engine
+// adam ulrich, 2023, adamulrich@hotmail.com 
+// this was written to learn basic rust concepts
 
 use std::{collections::HashMap};
 use std::error::Error;
@@ -19,14 +22,14 @@ static ORDER_REGION_DES: i32 = 5;
 static ORDER_DELTA_ASC: i32 = 6;
 static ORDER_DELTA_DES: i32 = 7;
 
-
+// struct for the hash so that we can quickly find delta years
 #[derive(Debug, Deserialize, Clone)]
 struct HashStruct {
     code: String,
     life_expectancy: f64
 }
 
-
+// struct for the life expectancy data
 #[derive(Debug, Deserialize, Clone)]
 struct ListStruct {
     region: String,
@@ -37,6 +40,8 @@ struct ListStruct {
     delta: f64
 }
 
+// this function guides the user through prompts to 
+// create a query against the life expetancy dataset.
 fn main() {
 
     let sort_text: Vec<String> = vec!["Life Expectancy: Lowest to Highest".to_string(), 
@@ -57,25 +62,24 @@ fn main() {
     // create dictionary of values
    let region_dict: HashMap<String, String> = create_region_dict(life_list.clone());
 
-    //println!("Done");
-    // clearscreen::clear().expect("failed to clear screen");
+    let mut another_query = true;
 
-    let another_query = true;
-
+    // keep looping to perform more queries
     while another_query {
         // clear screen
         // clearscreen::clear().expect("failed to clear screen");
+
         println!("Welcome to the Life Expectancy Query System.");
         println!();
 
         // get query type
         let mut query_input_type: i32 = get_int_input(
-            "Do you want to do a general age query (1), or a delta query - \
-            change in age over a number of years (2)?)".to_string(),
+            "Do you want to do a general age query (1), or a delta query - \n\
+            a change in age over a number of years (2)?".to_string(),
             1,2);
 
+        // subtract one to map to index and constants
         query_input_type -= 1;
-
 
         // get region list from user
         let user_region_list: Vec<String> = get_region_list_from_user(region_dict.clone());
@@ -92,9 +96,8 @@ fn main() {
 
         println!("We have data from {} to {} for this region selection.", min_years,max_years);
 
-
-        let mut year_delta_input: i32 =0;
         // if delta, get delta value
+        let mut year_delta_input: i32 =0;
         if query_input_type == QUERY_TYPE_DELTA {
             let prompt = format!("How many years in the future to get the delta (1 - {max_delta_years}) ? ");
             year_delta_input = get_int_input(prompt, 1, max_delta_years);
@@ -155,30 +158,31 @@ fn main() {
             query_only_common_years = get_user_input(prompt_common_years).to_lowercase().chars().next().unwrap() == 'y';
         }
         
+        // get delta values if needed
         if query_input_type == QUERY_TYPE_DELTA {
             data_set = delta_query(data_set, life_dict.clone(), year_delta_input)
         }
 
-        // sort list by order
+        // sort dataset by life expectancy
         if query_order_input == ORDER_LIFE_DES ||
         query_order_input == ORDER_LIFE_ASC {
                 data_set = sort_by_life_expectancy(data_set, order_descending_requested);
             }
         
+        // sort dataset by year
         if query_order_input == ORDER_DATE_ASC ||
         query_order_input == ORDER_DATE_DES {
                 data_set = sort_by_year(data_set, order_descending_requested);
         } 
         
-        if query_order_input == ORDER_REGION_DES    
-        {
-            // sort by region
+        // sort dataset by region alphabeticall
+        if query_order_input == ORDER_REGION_DES {
             data_set = sort_by_region(data_set);
         }
 
+        // sort dataset by delta values
         if query_order_input == ORDER_DELTA_ASC || 
         query_order_input == ORDER_DELTA_DES {
-            // sort by delta
             data_set = sort_by_delta(data_set, order_descending_requested)
         }
 
@@ -186,9 +190,10 @@ fn main() {
         results_count_requested = results_count_requested.min(data_set.len() as i32);
         data_set = data_set[..results_count_requested as usize].to_vec();
 
-        // print data_set for regular
+        // print data_set
         let query_type: [String; 2] = ["GENERAL".to_string(), "DELTA".to_string()];
 
+        // print summary of query
         println!();
         println!();
         println!("-------------");
@@ -203,29 +208,40 @@ fn main() {
         //get max region width
         let max_width: usize = data_set.clone().into_iter().map(|r| r.region.len()).max().unwrap() + 2;
         
+        // print general query
         if query_input_type == QUERY_TYPE_GENERAL {
+            //print headers
             println!("{:<8} {:<max_width$} {:<7} {:<8}", "code", "region", "year", "life_exp");
-            println!("{:<8} {:<max_width$} {:<7} {:<8}", "----", "------", "----", "---------------");
+            println!("{:<8} {:<max_width$} {:<7} {:<8}", "----", "------", "----", "--------");
+
+            // print data
             for r in data_set {
                 println!("{:<8} {:<max_width$} {:<7} {:<8.2}", r.code, r.region, r.year, r.life_expectancy);
             }
+        // print delta query
         } else {
             // print headers
             println!("{:<8} {:<max_width$} {:<7} {:<8} {:<8}", "code", "region", "year", "life_exp", "delta");
+            println!("{:<8} {:<max_width$} {:<7} {:<8} {:<8}", "----", "------", "----", "--------", "--------");
+        
+            // print data
             for r in data_set {
                 println!("{:<8} {:<max_width$} {:<7} {:<8.2} {:<8.2}", r.code, r.region, r.year, r.life_expectancy, r.delta);
             }
-
         }
 
+        // create space
         println!();
         println!();
 
         //loop back as needed.
+        let prompt = "Another query? ".to_string();
+        if get_user_input(prompt).to_lowercase().chars().next().unwrap() == 'n' {
+            another_query = false;
+        }                
     }
   
 }
-
 
 // gets an integer from the user within the bounds specified
 // will keep trying until successful
@@ -261,6 +277,7 @@ fn get_int_input(prompt: String, valid_range_start: i32, valid_range_end: i32) -
 
 }
 
+// this function provides a prompt to the user, and gets a string response
 fn get_user_input(prompt: String) -> String {
     println!("{}",prompt);
     let mut user_input = String::new();
@@ -269,28 +286,31 @@ fn get_user_input(prompt: String) -> String {
     user_input
 }
 
+// this functions reads life expectancy data from a file and places it
+// into a hashmap and a vector, then returns both
 fn read_from_file(path: String) -> Result<(HashMap<String, HashStruct>, Vec<ListStruct>), Box<dyn Error >> {
 
     // Creates a new csv `Reader` from a file
     let reader = csv::Reader::from_path(path);
     let mut life_dict: HashMap<String, HashStruct> = HashMap::new();    
     let mut life_list: Vec<ListStruct> = Vec::new();
-
     
-    // `.records` return an iterator of the internal
-    // record structure
+    // iterate over the data in the file
     for row in reader?.deserialize() {
+
+        // read it into a row
         let mut record: ListStruct = row?;
         
+        // clean data
         record.code = record.code.to_string().to_lowercase();
         record.region = record.region.to_string().to_lowercase();
         record.delta = 0 as f64;
     
-        // deconstruct
+        // create hash key
         let year = record.year;
-        
         let key = format!("{}:{}", record.region, year);
 
+        // create hash item
         let value_hash: HashStruct = HashStruct 
             { code: (record.clone().code), 
             life_expectancy: (record.clone().life_expectancy) };
@@ -298,14 +318,13 @@ fn read_from_file(path: String) -> Result<(HashMap<String, HashStruct>, Vec<List
         // add to dictionary
         life_dict.insert(key.clone(),value_hash);
       
-        // add to list
+        // add to dataset vector
         life_list.push(record);
     }
     //return (life_dict, life_list);
     Ok((life_dict, life_list))
     
 }
-
 
 // this function gets a list of regions to query from the user
 fn get_region_list_from_user(region_dict: HashMap<String, String>) -> Vec<String> {
@@ -408,7 +427,6 @@ fn get_region_list_from_user(region_dict: HashMap<String, String>) -> Vec<String
 
 }
 
-
 // create hashmap of codes with  country names
 fn create_region_dict(life_list: Vec<ListStruct>) -> HashMap<String, String>{
     
@@ -437,7 +455,6 @@ fn filter_years(data_set: Vec<ListStruct>, start_year: i32, end_year: i32) -> Ve
     data_set.into_iter().filter(|x| x.year >= start_year && x.year <= end_year).collect()
 }
 
-
 // sort the data by list
 fn sort_by_life_expectancy(mut data_set: Vec<ListStruct>, sort_order: bool) -> Vec<ListStruct> {
 
@@ -450,6 +467,7 @@ fn sort_by_life_expectancy(mut data_set: Vec<ListStruct>, sort_order: bool) -> V
     data_set
 }
 
+// this function sorts the dataset by year, asc or des.
 fn sort_by_year(mut data_set: Vec<ListStruct>, sort_order: bool) -> Vec<ListStruct> {
 
     if sort_order {
@@ -461,6 +479,7 @@ fn sort_by_year(mut data_set: Vec<ListStruct>, sort_order: bool) -> Vec<ListStru
     data_set
 }
 
+// this function sorts the dataset by the delta value, des or asc
 fn sort_by_delta(mut data_set: Vec<ListStruct>, sort_order: bool) -> Vec<ListStruct> {
 
     if sort_order  {
@@ -472,6 +491,7 @@ fn sort_by_delta(mut data_set: Vec<ListStruct>, sort_order: bool) -> Vec<ListStr
     data_set
 }
 
+// this function sorts the dataset by the region alphabetically
 fn sort_by_region(mut data_set: Vec<ListStruct>) -> Vec<ListStruct> {
 
     data_set.sort_by(|a,b| a.region.cmp(&b.region));
@@ -479,20 +499,18 @@ fn sort_by_region(mut data_set: Vec<ListStruct>) -> Vec<ListStruct> {
     data_set
 }
 
-
 // this function calculates the deltas
 fn delta_query(data_set: Vec<ListStruct>, life_dict: HashMap<String, HashStruct>, year_delta: i32) -> Vec<ListStruct> {
-
 
     let mut return_data_set: Vec<ListStruct> = Vec::new();
 
     //iterate over dataset
     for r in data_set.iter() {
 
-
         // create key
         let year = (r.year + year_delta).to_string();
         let key = format!("{}:{}",r.region, year);
+
         // if it exists in the dictionary
         if life_dict.contains_key(&key.clone()) {
 
@@ -507,6 +525,5 @@ fn delta_query(data_set: Vec<ListStruct>, life_dict: HashMap<String, HashStruct>
     }
 
     return_data_set
- 
  
 }
