@@ -6,20 +6,24 @@ I had previously done this in python, so this was a port to rust. The intent was
 
 [Software Demo Video](http://youtube.link.goes.here)
 
-# Development Environment
+## Development Environment
 
 - VS Code
-- Rust analyzer
+- Rustup (Rust installer)
+- VS Extension - Rust analyzer
+- VS C++ Build Tools
+
+## Rust Libraries
 
 - list_comprehension
 - serde
 - itertools
 
-# Useful Websites
+## Useful Websites
 
 - [Official Rust Web Site](https://www.rust-lang.org/)
 - [Rustlings](https://github.com/rust-lang/rustlings)
 
-# Future Work
+## Future Work
 
 - Add a GUI
