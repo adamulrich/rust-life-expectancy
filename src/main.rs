@@ -62,7 +62,7 @@ fn main() {
     "Delta: Smallest to Largest".to_string()];
     
     // read data from file into dictionary
-    let result = read_from_file("res/life-expectancy.csv".to_string()).unwrap();
+    let result: (HashMap<String, HashStruct>, Vec<ListStruct>) = read_from_file("res/life-expectancy.csv".to_string()).unwrap();
 
     // get data from result
     let life_dict = result.0;
