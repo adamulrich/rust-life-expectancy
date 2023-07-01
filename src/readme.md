@@ -4,7 +4,7 @@ This program walks a user through generating a query against a per region per ye
 
 I had previously done this in python, so this was a port to rust. The intent was to learn rust syntax and concepts such as block scope, ownership borrowing, etc.
 
-[Software Demo Video](http://youtube.link.goes.here)
+[Software Demo Video](https://youtu.be/XWs36wG-zwg)
 
 ## Development Environment
 

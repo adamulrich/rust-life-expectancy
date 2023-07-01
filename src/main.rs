@@ -2,6 +2,15 @@
 // life expectancy dataset query engine
 // adam ulrich, 2023, adamulrich@hotmail.com 
 // this was written to learn basic rust concepts
+// purpose:
+//     general query engine that allows you to specify 
+// 	a. the region(s) of interest( including just countries or all regions)
+// 	b. the years of interest that are available for those regions are then displayed, then what year to start and end
+// 	c. how to sort the data (by age, alphabetically by region, 
+// 	d. How many results you want. 
+// 	e. If you only want years that all regions in the data set have in common
+//     f. create delta queries which support analysis of changes over years.
+
 
 use std::{collections::HashMap};
 use std::error::Error;
